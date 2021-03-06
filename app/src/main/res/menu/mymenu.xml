@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <item
+        android:id="@+id/userData"
+        android:title="Dati Utente"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/notifica"
+        android:title="Notifiche"
+        app:showAsAction="never" >
+
+        <menu>
+            <item
+                android:id="@+id/attivaNot"
+                android:title="Attiva"
+                />
+            <item
+                android:id="@+id/disattivaNot"
+                android:title="Disattiva"
+                />
+
+        </menu>
+    </item>
+
+</menu>
