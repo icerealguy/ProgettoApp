@@ -1,14 +1,17 @@
 package com.example.progettoapp
 
+import android.Manifest
 import android.app.AlarmManager
 import android.app.PendingIntent
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.hardware.Sensor
 import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
 import android.hardware.SensorManager
 import android.os.Build
 import android.os.Bundle
+import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
@@ -18,6 +21,8 @@ import android.widget.AdapterView.OnItemSelectedListener
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import androidx.preference.PreferenceManager
 import java.util.*
 
@@ -33,6 +38,8 @@ class MainActivity : AppCompatActivity(), OnItemSelectedListener, SensorEventLis
     var running = false
     var numpassi = 10000 //default
     var day = 0
+    var passioggi=0
+    var passiieri=0
 
     //Calendario
     var textViewGiorno: TextView? = null
@@ -44,6 +51,10 @@ class MainActivity : AppCompatActivity(), OnItemSelectedListener, SensorEventLis
     public override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+
+        //chiede permessi sensore movimento
+        setupPermissions()
+
         val tb = findViewById<Toolbar>(R.id.app_bar)
         setSupportActionBar(tb)
         textViewGiorno = findViewById(R.id.giornoTV)
@@ -84,7 +95,7 @@ class MainActivity : AppCompatActivity(), OnItemSelectedListener, SensorEventLis
         contaCal = findViewById(R.id.contaCal)
         val sharedPref = PreferenceManager.getDefaultSharedPreferences(baseContext)
         val peso = sharedPref.getString("peso", "60")
-        val cal = calcolaCalorie(peso, sharedPref.getInt("passi", numpassi))
+        val cal = calcolaCalorie(peso, passioggi)
         println("calorie$cal\n")
         contaCal!!.setText(cal.toString())
         sensorManager = getSystemService(SENSOR_SERVICE) as SensorManager
@@ -96,6 +107,40 @@ class MainActivity : AppCompatActivity(), OnItemSelectedListener, SensorEventLis
             val value = adapter.getItem(position)
             Toast.makeText(applicationContext, value, Toast.LENGTH_SHORT).show()
             open(view, giorno, value)
+        }
+    }
+
+    /**
+     * Permessi per sensore movimento per contapassi
+     */
+    private fun setupPermissions() {
+        val permission = ContextCompat.checkSelfPermission(this,
+                Manifest.permission.ACTIVITY_RECOGNITION)
+
+        if (permission != PackageManager.PERMISSION_GRANTED) {
+            Log.i("TAG", "Permission to record denied")
+            makeRequest()
+        }
+    }
+
+    private fun makeRequest() {
+        ActivityCompat.requestPermissions(this,
+                arrayOf(Manifest.permission.ACTIVITY_RECOGNITION),
+                123)
+    }
+
+    override fun onRequestPermissionsResult(requestCode: Int,
+                                            permissions: Array<String>, grantResults: IntArray) {
+        when (requestCode) {
+            123 -> {
+
+                if (grantResults.isEmpty() || grantResults[0] != PackageManager.PERMISSION_GRANTED) {
+
+                    Log.i("TAG", "Permission has been denied by user")
+                } else {
+                    Log.i("TAG", "Permission has been granted by user")
+                }
+            }
         }
     }
 
@@ -210,30 +255,37 @@ class MainActivity : AppCompatActivity(), OnItemSelectedListener, SensorEventLis
         //sensorManager.unregisterListener(this);
     }
 
+
+
     /**
      * Si occupa del conteggio passi giornaliero.
      * Ogni giorno vengono azzerati.
      * @param event
      */
     override fun onSensorChanged(event: SensorEvent) {
+
+
+
         if (running) {
             val calendar = Calendar.getInstance(TimeZone.getDefault())
             val sharedPref = PreferenceManager.getDefaultSharedPreferences(this@MainActivity)
-            if (day == 0) {
+
+
+
+            if ((day != sharedPref.getInt("giorno", 0)) || (day ==0)) {
                 day = calendar[Calendar.DATE]
                 val editor = sharedPref.edit()
                 editor.putInt("giorno", day)
-                editor.putInt("passi", event.values[0].toInt())
-                editor.apply()
-            } else if (day != sharedPref.getInt("giorno", 0)) {
-                day = calendar[Calendar.DATE]
-                val editor = sharedPref.edit()
-                editor.putInt("giorno", day)
-                editor.putInt("passi", (sharedPref.getInt("passi", 0) - event.values[0]).toInt())
+                passiieri = passioggi
+                passioggi = event.values[0].toInt() - passiieri
                 editor.apply()
             }
-            // tvPassi.setText(String.valueOf(event.values[0]));
-            tvPassi!!.setText(sharedPref.getInt("passi", 0))
+            else
+            {
+                passioggi = event.values[0].toInt() - passiieri
+            }
+            //tvPassi!!.setText((event.values[0]).toString())
+            tvPassi!!.setText(passioggi.toString())
         }
     }
 
