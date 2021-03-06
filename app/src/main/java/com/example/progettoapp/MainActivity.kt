@@ -271,17 +271,18 @@ class MainActivity : AppCompatActivity(), OnItemSelectedListener, SensorEventLis
             val sharedPref = PreferenceManager.getDefaultSharedPreferences(this@MainActivity)
 
 
-
+            //azzera i passi ogni giorno
             if ((day != sharedPref.getInt("giorno", 0)) || (day ==0)) {
                 day = calendar[Calendar.DATE]
                 val editor = sharedPref.edit()
                 editor.putInt("giorno", day)
                 passiieri = passioggi
-                passioggi = event.values[0].toInt() - passiieri
+                passioggi = 0
                 editor.apply()
             }
             else
             {
+                //calcola i passi giornalieri 
                 passioggi = event.values[0].toInt() - passiieri
             }
             //tvPassi!!.setText((event.values[0]).toString())
