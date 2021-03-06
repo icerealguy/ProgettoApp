@@ -93,11 +93,15 @@ class MainActivity : AppCompatActivity(), OnItemSelectedListener, SensorEventLis
         listItem = resources.getStringArray(R.array.array_dieta)
         tvPassi = findViewById(R.id.conteggio)
         contaCal = findViewById(R.id.contaCal)
+
+
         val sharedPref = PreferenceManager.getDefaultSharedPreferences(baseContext)
         val peso = sharedPref.getString("peso", "60")
+
         val cal = calcolaCalorie(peso, passioggi)
         println("calorie$cal\n")
-        contaCal!!.setText(cal.toString())
+        setCal(peso, passioggi);
+
         sensorManager = getSystemService(SENSOR_SERVICE) as SensorManager
         val adapter = ArrayAdapter(this,
                 android.R.layout.simple_list_item_1, android.R.id.text1, listItem)
@@ -108,6 +112,20 @@ class MainActivity : AppCompatActivity(), OnItemSelectedListener, SensorEventLis
             Toast.makeText(applicationContext, value, Toast.LENGTH_SHORT).show()
             open(view, giorno, value)
         }
+    }
+
+
+    /**
+     * Setta la view relativa alle calorie bruciate, richiamata nel ccontapassi si aggiorna
+     * @param peso utente
+     * @param passioggi passi effettuati in giornata
+     */
+    private fun setCal(peso: String?, passioggi: Int) {
+
+        val cal = calcolaCalorie(peso, passioggi)
+        println("calorie$cal\n")
+        contaCal!!.setText(cal.toString())
+
     }
 
     /**
@@ -271,7 +289,7 @@ class MainActivity : AppCompatActivity(), OnItemSelectedListener, SensorEventLis
             val sharedPref = PreferenceManager.getDefaultSharedPreferences(this@MainActivity)
 
 
-            //azzera i passi ogni giorno
+
             if ((day != sharedPref.getInt("giorno", 0)) || (day ==0)) {
                 day = calendar[Calendar.DATE]
                 val editor = sharedPref.edit()
@@ -282,10 +300,10 @@ class MainActivity : AppCompatActivity(), OnItemSelectedListener, SensorEventLis
             }
             else
             {
-                //calcola i passi giornalieri 
                 passioggi = event.values[0].toInt() - passiieri
             }
             //tvPassi!!.setText((event.values[0]).toString())
+            setCal(sharedPref.getString("peso","60"),passioggi)
             tvPassi!!.setText(passioggi.toString())
         }
     }
